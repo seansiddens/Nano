@@ -38,7 +38,11 @@ impl Clone for Expr {
             Expr::EBool(b) => Expr::EBool(*b),
             Expr::ENil => Expr::ENil,
             Expr::EVar(id) => Expr::EVar(id.clone()),
-            Expr::EBin(binop, , )
+            Expr::EBin(binop, e1, e2) => Expr::EBin(binop.clone(), e1.clone(), e2.clone()),
+            Expr::EIf(e1, e2, e3) => Expr::EIf(e1.clone(), e2.clone(), e3.clone()),
+            Expr::ELet(id, e1, e2) => Expr::ELet(id.clone(), e1.clone(), e2.clone()),
+            Expr::EApp(e1, e2) => Expr::EApp(e1.clone(), e2.clone()),
+            Expr::ELam(id, e) => Expr::ELam(id.clone(), e.clone()),
         }
     }
 }
@@ -51,6 +55,20 @@ pub enum Value {
     VPair(Box<Value>, Box<Value>),
     VErr(String),
     VPrim(fn(Value) -> Value),
+}
+
+impl Clone for Value {
+    fn clone(&self) -> Self {
+        match self {
+            Value::VInt(x) => Value::VInt(*x),
+            Value::VBool(b) => Value::VBool(*b),
+            Value::VClos(env, id, expr) => Value::VClos(env.clone(), id.clone(), expr.clone()),
+            Value::VNil => Value::VNil,
+            Value::VPair(v1, v2) => Value::VPair(v1.clone(), v2.clone()),
+            Value::VErr(s) => Value::VErr(s.clone()),
+            Value::VPrim(prim) => Value::VPrim(prim.clone()),
+        }
+    }
 }
 
 impl PartialEq for Value {
