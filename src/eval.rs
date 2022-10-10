@@ -144,11 +144,95 @@ mod tests {
         assert!(eval(env.clone(), Expr::EInt(5)) == Value::VInt(5));
         assert!(eval(env.clone(), Expr::EBool(true)) == Value::VBool(true));
         assert!(eval(env.clone(), Expr::ENil) == Value::VNil);
-        let mut val = eval(
-            env.clone(),
-            Expr::ELam("foo".to_string(), Box::new(Expr::EInt(7))),
+
+        // Nested Expressions.
+
+        // (2 + 3) * (4 + 5)
+        let expr = Expr::EBin(
+            Binop::Mul,
+            Box::new(Expr::EBin(
+                Binop::Plus,
+                Box::new(Expr::EInt(2)),
+                Box::new(Expr::EInt(3)),
+            )),
+            Box::new(Expr::EBin(
+                Binop::Plus,
+                Box::new(Expr::EInt(4)),
+                Box::new(Expr::EInt(5)),
+            )),
         );
-        // assert!(val == Value::VClos(env, "foo".to_string(), Expr::EInt(7)));
+        assert!(eval(env.clone(), expr) == Value::VInt(45));
+
+        // let z = 3 in
+        // let y = 2 in
+        // let x = 1 in
+        // let w = 0 in
+        //  (x + y) - (z + w)
+        let expr = Expr::ELet(
+            "z".to_string(),
+            Box::new(Expr::EInt(3)),
+            Box::new(Expr::ELet(
+                "y".to_string(),
+                Box::new(Expr::EInt(2)),
+                Box::new(Expr::ELet(
+                    "x".to_string(),
+                    Box::new(Expr::EInt(1)),
+                    Box::new(Expr::ELet(
+                        "w".to_string(),
+                        Box::new(Expr::EInt(0)),
+                        Box::new(Expr::EBin(
+                            Binop::Minus,
+                            Box::new(Expr::EBin(
+                                Binop::Plus,
+                                Box::new(Expr::EVar("x".to_string())),
+                                Box::new(Expr::EVar("y".to_string())),
+                            )),
+                            Box::new(Expr::EBin(
+                                Binop::Plus,
+                                Box::new(Expr::EVar("z".to_string())),
+                                Box::new(Expr::EVar("w".to_string())),
+                            )),
+                        )),
+                    )),
+                )),
+            )),
+        );
+        assert!(eval(env.clone(), expr) == Value::VInt(0));
+
+        // let z = 3 in
+        // let y = 2 in
+        // let x = 1 in
+        // let w = 0 in
+        //   if ((x + y) - (z + w)) == 0 then 3 else 7
+        let expr = Expr::ELet(
+            "z".to_string(),
+            Box::new(Expr::EInt(3)),
+            Box::new(Expr::ELet(
+                "y".to_string(),
+                Box::new(Expr::EInt(2)),
+                Box::new(Expr::ELet(
+                    "x".to_string(),
+                    Box::new(Expr::EInt(1)),
+                    Box::new(Expr::ELet(
+                        "w".to_string(),
+                        Box::new(Expr::EInt(0)),
+                        Box::new(Expr::EBin(
+                            Binop::Minus,
+                            Box::new(Expr::EBin(
+                                Binop::Plus,
+                                Box::new(Expr::EVar("x".to_string())),
+                                Box::new(Expr::EVar("y".to_string())),
+                            )),
+                            Box::new(Expr::EBin(
+                                Binop::Plus,
+                                Box::new(Expr::EVar("z".to_string())),
+                                Box::new(Expr::EVar("w".to_string())),
+                            )),
+                        )),
+                    )),
+                )),
+            )),
+        );
     }
 
     #[test]

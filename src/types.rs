@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt;
+use std::hash::Hash;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Binop {
@@ -132,10 +133,33 @@ impl fmt::Display for Value {
             Value::VErr(s) => format!("ERROR: {}", s),
             Value::VNil => "[]".to_string(),
             Value::VPrim(_) => "<<primitive-function".to_string(),
-
         };
         write!(f, "{}", value_string)
     }
+}
+
+// Type alias.
+pub type TVar = String;
+
+// Mapping of program variables to poly-types.
+pub type TypeEnv = HashMap<Id, Poly>;
+
+// Mapping of type variables to the types they should be replaced with.
+pub type Subst = HashMap<TVar, Type>;
+
+#[derive(Debug, PartialEq)]
+pub enum Type {
+    TInt,                            // Int
+    TBool,                           // Bool
+    TFunction(Box<Type>, Box<Type>), // function type: T1 -> T2
+    TVar(TVar),                      //  type variable: a, b, c
+    TList(Box<Type>),                // list type: [T]
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Poly {
+    Mono(Type),              // mono-type
+    Forall(TVar, Box<Poly>), // Polymorphic type
 }
 
 #[cfg(test)]
