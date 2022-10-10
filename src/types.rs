@@ -1,6 +1,7 @@
 use std::collections::HashMap;
+use std::fmt;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Binop {
     Plus,
     Minus,
@@ -15,10 +16,30 @@ pub enum Binop {
     Cons,
 }
 
+impl fmt::Display for Binop {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let binop_string = match self {
+            Binop::Plus => "+",
+            Binop::Minus => "-",
+            Binop::Mul => "*",
+            Binop::Div => "/",
+            Binop::Eq => "=",
+            Binop::Ne => "!=",
+            Binop::Lt => "<",
+            Binop::Le => "<=",
+            Binop::And => "&&",
+            Binop::Or => "||",
+            Binop::Cons => ":",
+        };
+        write!(f, "{}", binop_string)
+    }
+}
+
 pub type Id = String;
 
 pub type Env = HashMap<String, Value>;
 
+#[derive(Debug)]
 pub enum Expr {
     EInt(i64),
     EBool(bool),
@@ -47,6 +68,24 @@ impl Clone for Expr {
     }
 }
 
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let expr_string = match self {
+            Expr::EInt(x) => format!("{}", x),
+            Expr::EBool(b) => format!("{}", b),
+            Expr::EVar(x) => x.to_string(),
+            Expr::EBin(o, e1, e2) => format!("({} {} {})", *e1, o, *e2),
+            Expr::EIf(c, t, e) => format!("if {} then {} else {}", *c, *t, *e),
+            Expr::ELet(x, e1, e2) => format!("let {} = {} in \n {}", x, *e1, *e2),
+            Expr::EApp(e1, e2) => format!("({} {})", *e1, *e2),
+            Expr::ELam(x, e) => format!("\\{} -> {}", x, *e),
+            Expr::ENil => "[]".to_string(),
+        };
+        write!(f, "{}", expr_string)
+    }
+}
+
+#[derive(Debug)]
 pub enum Value {
     VInt(i64),
     VBool(bool),
@@ -80,6 +119,22 @@ impl PartialEq for Value {
             (Value::VPair(x1, y1), Value::VPair(x2, y2)) => x1 == x2 && y1 == y2,
             _ => false,
         }
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value_string = match self {
+            Value::VInt(x) => format!("{}", x),
+            Value::VBool(b) => format!("{}", b),
+            Value::VClos(env, x, v) => format!("<<{:#?}, \\{} -> {}>>", env, x, v),
+            Value::VPair(v, w) => format!("({} : {})", *v, *w),
+            Value::VErr(s) => format!("ERROR: {}", s),
+            Value::VNil => "[]".to_string(),
+            Value::VPrim(_) => "<<primitive-function".to_string(),
+
+        };
+        write!(f, "{}", value_string)
     }
 }
 
